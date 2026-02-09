@@ -46,8 +46,7 @@ Infrastructure/
 │   │   ├── dev/              # Development environment
 │   │   └── prod/             # Production environment
 │   └── shared/               # Shared configuration
-├── .github/workflows/
-│   └── cd-deployment.yml     # CD pipeline for infrastructure
+├── Jenkinsfile               # Jenkins pipeline for infrastructure
 └── README.md
 ```
 
@@ -62,8 +61,8 @@ Infrastructure/
 ✅ **Secrets Management** with AWS Secrets Manager
 ✅ **CloudWatch** logging and monitoring
 ✅ **Security** with security groups and IAM roles
-✅ **CI/CD Integration** with GitHub Actions
-✅ **State Management** with S3 backend
+✅ **CI/CD Integration** with Jenkins
+✅ **State Management** with S3 backend (bucket: scorpiobackendterraform, env-wise)
 
 ## Prerequisites
 
@@ -74,11 +73,12 @@ Infrastructure/
 
 ## AWS Secrets Required
 
-Configure the following in GitHub repository settings:
+
+Configure the following in Jenkins credentials or environment variables:
 
 ```
 AWS_ACCOUNT_ID          # Your AWS account ID
-AWS_REGION              # AWS region (default: us-east-1)
+AWS_REGION              # AWS region (default: ap-south-1)
 SLACK_WEBHOOK           # Optional: For Slack notifications
 ```
 
@@ -140,9 +140,9 @@ db_backup_retention_period = 30
 ```bash
 cd terraform/environments/prod
 terraform init \
-  -backend-config="bucket=Hospital-Management-TF-STATE" \
+  -backend-config="bucket=scorpiobackendterraform" \
   -backend-config="key=prod/terraform.tfstate" \
-  -backend-config="region=us-east-1" \
+  -backend-config="region=ap-south-1" \
   -backend-config="dynamodb_table=terraform-locks"
 ```
 
@@ -164,19 +164,20 @@ terraform apply tfplan
 terraform destroy
 ```
 
+
 ## CI/CD Pipeline
 
-The GitHub Actions workflow (`cd-deployment.yml`) automatically:
+The Jenkins pipeline (`Jenkinsfile`) automatically:
 
 1. **Plan** - Validates Terraform and creates execution plan
-2. **Apply** - Applies changes to dev environment (manual approval for prod)
-3. **Notify** - Sends deployment status notifications
+2. **Apply** - Applies changes to dev or prod environment (manual approval for prod)
+3. **Notify** - Sends deployment status notifications (optional)
 
 ### Pipeline Triggers
 
-- Automatic on push to `main` branch (dev only)
-- Manual dispatch for production deployments
-- Validates all Terraform changes in PRs
+- Automatic on push to `main` branch (if configured in Jenkins)
+- Manual approval for production deployments
+- Validates all Terraform changes in PRs (if configured)
 
 ## Outputs
 
