@@ -114,6 +114,27 @@ resource "aws_db_subnet_group" "main" {
   subnet_ids = aws_subnet.private[*].id
 }
 
+# Public route table
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+
+  tags = {
+    Name = "${var.app_name}-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "public" {
+  count = length(aws_subnet.public)
+
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -131,31 +152,18 @@ resource "aws_lb" "alb" {
   }
 }
 
-resource "aws_lb_target_group" "app_tg" {
-  name     = "${var.app_name}-tg"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
-
-  health_check {
-    enabled             = true
-    path                = "/health"
-    protocol            = "HTTP"
-    matcher             = "200-399"
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-  }
-}
-
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.alb.arn
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.app_tg.arn
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "application/json"
+      message_body = "{\"message\":\"Route not found\"}"
+      status_code  = "404"
+    }
   }
 }

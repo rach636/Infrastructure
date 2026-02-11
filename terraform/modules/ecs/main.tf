@@ -1,6 +1,18 @@
 # ECS Task Definition
 locals {
   alb_name = "${substr(var.app_name, 0, 10)}-${substr(var.service_name, 0, 10)}-alb"
+  environment_variables = [
+    for name, value in var.container_environment : {
+      name  = name
+      value = value
+    }
+  ]
+  secret_variables = [
+    for name, value_from in var.container_secrets : {
+      name      = name
+      valueFrom = value_from
+    }
+  ]
 }
 
 resource "aws_ecs_task_definition" "service" {
@@ -21,6 +33,8 @@ resource "aws_ecs_task_definition" "service" {
       hostPort      = var.container_port
       protocol      = "tcp"
     }]
+    environment = local.environment_variables
+    secrets     = local.secret_variables
     logConfiguration = {
       logDriver = "awslogs"
       options = {
@@ -28,13 +42,6 @@ resource "aws_ecs_task_definition" "service" {
         "awslogs-region"        = data.aws_region.current.name
         "awslogs-stream-prefix" = "ecs"
       }
-    }
-    healthCheck = {
-      command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port}/api/v1/health || exit 1"]
-      interval    = 30
-      timeout     = 5
-      retries     = 3
-      startPeriod = 60
     }
   }])
 }
@@ -48,9 +55,9 @@ resource "aws_ecs_service" "service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = var.private_subnet_ids
+    subnets          = var.public_subnet_ids
     security_groups  = [var.ecs_security_group_id]
-    assign_public_ip = false
+    assign_public_ip = true
   }
 
   load_balancer {
@@ -58,8 +65,6 @@ resource "aws_ecs_service" "service" {
     container_name   = var.service_name
     container_port   = var.container_port
   }
-
-  depends_on = [aws_lb_listener.service]
 }
 
 # Load Balancer Target Group
@@ -75,28 +80,8 @@ resource "aws_lb_target_group" "service" {
     unhealthy_threshold = 2
     timeout             = 3
     interval            = 30
-    path                = "/api/v1/health"
+    path                = var.health_check_path
     matcher             = "200"
-  }
-}
-
-# Application Load Balancer
-resource "aws_lb" "main" {
-  name               = local.alb_name
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [var.alb_security_group_id]
-  subnets            = var.public_subnet_ids
-}
-
-resource "aws_lb_listener" "service" {
-  load_balancer_arn = aws_lb.main.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.service.arn
   }
 }
 

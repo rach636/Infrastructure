@@ -49,3 +49,22 @@ variable "task_memory" {
 variable "desired_count" {
   type = number
 }
+
+variable "container_environment" {
+  type    = map(string)
+  default = {}
+}
+
+variable "container_secrets" {
+  type    = map(string)
+  default = {}
+}
+
+variable "health_check_path" {
+  type    = string
+  default = "/api/v1/health"
+}
+
+output "target_group_arn" {
+  value = aws_lb_target_group.service.arn
+}
