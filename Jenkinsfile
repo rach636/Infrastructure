@@ -34,14 +34,23 @@ pipeline {
       }
     }
     stage('Terraform Apply') {
-      when { branch 'main' }
       steps {
         input 'Approve production deployment?'
+        script {
+          env.TF_APPLY_RAN = 'true'
+        }
         sh 'terraform -chdir=terraform/environments/prod apply -auto-approve tfplan'
       }
     }
   }
   post {
+    failure {
+      script {
+        if (env.TF_APPLY_RAN == 'true') {
+          sh 'terraform -chdir=terraform/environments/prod destroy -auto-approve -refresh=false -lock=false'
+        }
+      }
+    }
     always { cleanWs() }
   }
 }
