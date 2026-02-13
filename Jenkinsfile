@@ -1,5 +1,8 @@
 pipeline {
   agent any
+  parameters {
+    choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Select apply or destroy')
+  }
   environment {
     TF_VERSION = '1.6.0'
     AWS_REGION = 'us-east-1'
@@ -34,6 +37,9 @@ pipeline {
       }
     }
     stage('Terraform Apply') {
+      when {
+        expression { params.ACTION == 'apply' }
+      }
       steps {
         input 'Approve production deployment?'
         script {
@@ -43,6 +49,9 @@ pipeline {
       }
     }
     stage('Force Destroy (Manual)') {
+      when {
+        expression { params.ACTION == 'destroy' }
+      }
       steps {
         input 'Force destroy ALL infrastructure?'
         sh 'terraform -chdir=terraform/environments/prod destroy -auto-approve -refresh=false -lock=false'
