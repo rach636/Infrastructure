@@ -103,5 +103,5 @@ variable "enable_monitoring" {
 variable "shared_execution_role_arn" {
   description = "Shared IAM role ARN used for ECS task execution and task role"
   type        = string
-  default     = "arn:aws:iam::147997138755:role/jenkins-cicd-role"
+  default     = "arn:aws:iam::147997138755:role/github-actions-cicd-role"
 }
