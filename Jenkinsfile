@@ -16,50 +16,51 @@ pipeline {
     }
 
     stages {
+
         stage('Clone Repository') {
             steps {
-                echo 'Cloning infrastructure repo...'
                 git branch: 'main', url: 'https://github.com/rach636/Infrastructure.git'
             }
         }
 
         stage('Terraform Init') {
-    steps {
-        dir('terraform/environments/prod') {
-            sh '''
-                terraform init -reconfigure -input=false
-            '''
-        }
-    }
-}
-
-        stage('Checkov Scan') {
-            steps {
-                echo 'Running Checkov on Terraform code'
-                sh '''
-                    docker run --rm -v $(pwd)/terraform:/terraform bridgecrew/checkov \
-                        -d /terraform/environments/dev \
-                        --framework terraform
-                '''
-            }
-        }
-
-        stage('Apply ECS Configuration') {
             steps {
                 dir('terraform/environments/prod') {
-                    sh '''
-                        terraform apply -auto-approve -target=module.ecs
-                    '''
+                    sh 'terraform init -reconfigure -input=false'
                 }
             }
         }
 
-        stage('Apply RDS Configuration') {
+        stage('Terraform Validate') {
             steps {
                 dir('terraform/environments/prod') {
-                    sh '''
-                        terraform apply -auto-approve -target=module.rds
-                    '''
+                    sh 'terraform validate'
+                }
+            }
+        }
+
+        stage('Checkov Scan') {
+            steps {
+                sh '''
+                docker run --rm -v $(pwd)/terraform:/terraform bridgecrew/checkov \
+                    -d /terraform/environments/prod \
+                    --framework terraform
+                '''
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                dir('terraform/environments/prod') {
+                    sh 'terraform plan -out=tfplan'
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                dir('terraform/environments/prod') {
+                    sh 'terraform apply -auto-approve tfplan'
                 }
             }
         }
