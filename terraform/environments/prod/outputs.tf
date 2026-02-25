@@ -7,15 +7,15 @@ output "rds_endpoint" {
 }
 
 output "patient_service_ecr" {
-  value = module.ecr.patient_service_repository_url
+  value = var.patient_service_ecr_url
 }
 
 output "appointment_service_ecr" {
-  value = module.ecr.appointment_service_repository_url
+  value = var.appointment_service_ecr_url
 }
 
 output "patient_portal_ecr" {
-  value = module.ecr.patient_portal_repository_url
+  value = var.patient_portal_ecr_url
 }
 
 output "shared_alb_dns" {
