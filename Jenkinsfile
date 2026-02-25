@@ -24,14 +24,14 @@ pipeline {
         }
 
         stage('Terraform Init') {
-            steps {
-                dir('terraform/environments/prod') {
-                    sh '''
-                        terraform init -input=false
-                    '''
-                }
-            }
+    steps {
+        dir('terraform/environments/prod') {
+            sh '''
+                terraform init -reconfigure -input=false
+            '''
         }
+    }
+}
 
         stage('Checkov Scan') {
             steps {
