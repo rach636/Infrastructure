@@ -105,3 +105,24 @@ variable "shared_execution_role_arn" {
   type        = string
   default     = "arn:aws:iam::035736213603:role/jenkins"
 }
+# -----------------------------
+# ECR REPOSITORY URLS
+# -----------------------------
+
+variable "patient_service_ecr_url" {
+  description = "ECR URL for patient-service"
+  type        = string
+  default     = "035736213603.dkr.ecr.us-east-1.amazonaws.com/patient-service"
+}
+
+variable "appointment_service_ecr_url" {
+  description = "ECR URL for appointment-service"
+  type        = string
+  default     = "035736213603.dkr.ecr.us-east-1.amazonaws.com/appointment-service"
+}
+
+variable "patient_portal_ecr_url" {
+  description = "ECR URL for patient-portal"
+  type        = string
+  default     = "035736213603.dkr.ecr.us-east-1.amazonaws.com/patient-portal"
+}
