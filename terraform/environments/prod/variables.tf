@@ -103,7 +103,7 @@ variable "enable_monitoring" {
 variable "shared_execution_role_arn" {
   description = "Shared IAM role ARN used for ECS task execution and task role"
   type        = string
-  default     = "arn:aws:iam::035736213603:role/jenkins"
+  default     = "arn:aws:iam::035736213603:role/ecs-role"
 }
 # -----------------------------
 # ECR REPOSITORY URLS
