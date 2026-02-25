@@ -11,7 +11,7 @@ module "networking" {
   public_subnet_ids    = var.public_subnet_ids
   private_subnet_ids   = var.private_subnet_ids
 }
-
+/*
 # ECR Repositories
 module "ecr" {
   source = "../../modules/ecr"
@@ -25,7 +25,7 @@ module "ecr" {
     "snapshot/patientportal"
   ]
 }
-
+*/
 # Secrets Manager
 module "secrets" {
   source = "../../modules/secrets"
