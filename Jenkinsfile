@@ -8,7 +8,6 @@ pipeline {
     environment {
         AWS_REGION = 'us-east-1'
         TF_VAR_environment = 'prod'
-        AWS_CREDENTIALS = credentials('aws-credentials')
     }
 
     options {
