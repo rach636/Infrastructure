@@ -37,19 +37,19 @@ variable "public_subnet_cidrs" {
 variable "existing_vpc_id" {
   description = "(Optional) Use an existing VPC by specifying its ID. Leave empty to create a new VPC."
   type        = string
-  default     = "vpc-04c43f1e3f46e50f5"
+  default     = "vpc-0599bbf8eea306626"
 }
 
 variable "public_subnet_ids" {
   description = "(Optional) List of existing public subnet IDs to use (in AZ order)"
   type        = list(string)
-  default     = ["subnet-0ee8dd7c02b75b349", "subnet-0bf538da9d3f0040c", "subnet-04f718ecdfe67f77a"]
+  default     = ["subnet-06aaf1136f15e26ef", "subnet-09d4bf4677a3ee6c4", "subnet-03827eae17aa94d53"]
 }
 
 variable "private_subnet_ids" {
   description = "(Optional) List of existing private subnet IDs to use (in AZ order)"
   type        = list(string)
-  default     = ["subnet-0af4ff257380caf3f", "subnet-0e04c326304dad454", "subnet-07c3eadb68cb75f7f"]
+  default     = ["subnet-044db3537e488bf52", "subnet-0184031be11fd97d7", "subnet-0d38e71a758cdeaa8"]
 }
 
 variable "ecs_task_cpu" {
