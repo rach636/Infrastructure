@@ -172,6 +172,39 @@ module "ecs_patient_portal" {
   depends_on = [aws_ecs_cluster.main]
 }
 
+data "aws_iam_role" "shared_execution_role" {
+  name = element(reverse(split("/", var.shared_execution_role_arn)), 0)
+}
+
+resource "aws_iam_role_policy" "shared_execution_role_secrets_access" {
+  name = "${var.app_name}-${var.environment}-ecs-exec-secrets-access"
+  role = data.aws_iam_role.shared_execution_role.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = [
+          module.rds.db_password_secret_arn,
+          module.secrets.jwt_secret_arn
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = "${var.app_name}-${var.environment}-cluster"
