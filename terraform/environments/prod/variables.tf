@@ -115,14 +115,32 @@ variable "patient_service_ecr_url" {
   default     = "035736213603.dkr.ecr.us-east-1.amazonaws.com/patient-service"
 }
 
+variable "patient_service_image_tag" {
+  description = "Image tag for patient-service"
+  type        = string
+  default     = "latest"
+}
+
 variable "appointment_service_ecr_url" {
   description = "ECR URL for appointment-service"
   type        = string
   default     = "035736213603.dkr.ecr.us-east-1.amazonaws.com/appointment-service"
 }
 
+variable "appointment_service_image_tag" {
+  description = "Image tag for appointment-service"
+  type        = string
+  default     = "latest"
+}
+
 variable "patient_portal_ecr_url" {
   description = "ECR URL for patient-portal"
   type        = string
   default     = "035736213603.dkr.ecr.us-east-1.amazonaws.com/patient-portal"
+}
+
+variable "patient_portal_image_tag" {
+  description = "Image tag for patient-portal"
+  type        = string
+  default     = "latest"
 }

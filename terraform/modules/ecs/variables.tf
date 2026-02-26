@@ -38,6 +38,11 @@ variable "ecr_repository_url" {
   type = string
 }
 
+variable "image_tag" {
+  type    = string
+  default = "latest"
+}
+
 variable "task_cpu" {
   type = string
 }
@@ -73,6 +78,26 @@ variable "container_secrets" {
 variable "health_check_path" {
   type    = string
   default = "/api/v1/health"
+}
+
+variable "health_check_matcher" {
+  type    = string
+  default = "200-399"
+}
+
+variable "alb_listener_arn" {
+  type    = string
+  default = null
+}
+
+variable "listener_rule_priority" {
+  type    = number
+  default = null
+}
+
+variable "listener_rule_path_patterns" {
+  type    = list(string)
+  default = []
 }
 
 output "target_group_arn" {

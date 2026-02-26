@@ -12,8 +12,9 @@ locals {
       valueFrom = value_from
     }
   ]
-  execution_role_arn = aws_iam_role.ecs_task_role.arn
-  task_role_arn      = aws_iam_role.ecs_task_role.arn
+  execution_role_arn = var.execution_role_arn != null && trimspace(var.execution_role_arn) != "" ? var.execution_role_arn : aws_iam_role.ecs_task_role.arn
+  task_role_arn      = var.task_role_arn != null && trimspace(var.task_role_arn) != "" ? var.task_role_arn : aws_iam_role.ecs_task_role.arn
+  create_listener_rule = var.alb_listener_arn != null && var.listener_rule_priority != null && length(var.listener_rule_path_patterns) > 0
 }
 resource "aws_iam_role" "ecs_task_role" {
   name = "${var.app_name}-${var.environment}-${var.service_name}-ecs-task-role"
@@ -59,7 +60,7 @@ task_role_arn      = local.task_role_arn
 
   container_definitions = jsonencode([{
     name      = var.service_name
-    image     = "${var.ecr_repository_url}:latest"
+    image     = "${var.ecr_repository_url}:${var.image_tag}"
     essential = true
     portMappings = [{
       containerPort = var.container_port
@@ -99,6 +100,8 @@ resource "aws_ecs_service" "service" {
     container_name   = var.service_name
     container_port   = var.container_port
   }
+
+  depends_on = [aws_lb_listener_rule.service]
 }
 
 # Load Balancer Target Group
@@ -115,7 +118,24 @@ resource "aws_lb_target_group" "service" {
     timeout             = 3
     interval            = 30
     path                = var.health_check_path
-    matcher             = "200"
+    matcher             = var.health_check_matcher
+  }
+}
+
+resource "aws_lb_listener_rule" "service" {
+  count        = local.create_listener_rule ? 1 : 0
+  listener_arn = var.alb_listener_arn
+  priority     = var.listener_rule_priority
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.service.arn
+  }
+
+  condition {
+    path_pattern {
+      values = var.listener_rule_path_patterns
+    }
   }
 }
 

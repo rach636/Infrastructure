@@ -67,6 +67,7 @@ module "ecs_patient_service" {
   ecs_security_group_id = module.networking.ecs_security_group_id
 
   ecr_repository_url = var.patient_service_ecr_url
+  image_tag          = var.patient_service_image_tag
   task_cpu           = var.ecs_task_cpu
   task_memory        = var.ecs_task_memory
   desired_count      = var.ecs_service_desired_count
@@ -87,7 +88,10 @@ module "ecs_patient_service" {
     DB_PASSWORD = module.rds.db_password_secret_arn
     JWT_SECRET  = module.secrets.jwt_secret_arn
   }
-  health_check_path = "/api/v1/health"
+  health_check_path           = "/api/v1/health"
+  alb_listener_arn            = module.networking.alb_listener_arn
+  listener_rule_priority      = 20
+  listener_rule_path_patterns = ["/api/v1/patients*", "/api/v1/doctors*", "/api/v1/health*"]
 
   depends_on = [aws_ecs_cluster.main, module.rds]
 }
@@ -107,6 +111,7 @@ module "ecs_appointment_service" {
   ecs_security_group_id = module.networking.ecs_security_group_id
 
   ecr_repository_url = var.appointment_service_ecr_url
+  image_tag          = var.appointment_service_image_tag
   task_cpu           = var.ecs_task_cpu
   task_memory        = var.ecs_task_memory
   desired_count      = var.ecs_service_desired_count
@@ -127,7 +132,10 @@ module "ecs_appointment_service" {
     DB_PASSWORD = module.rds.db_password_secret_arn
     JWT_SECRET  = module.secrets.jwt_secret_arn
   }
-  health_check_path = "/api/v1/health"
+  health_check_path           = "/api/v1/health"
+  alb_listener_arn            = module.networking.alb_listener_arn
+  listener_rule_priority      = 10
+  listener_rule_path_patterns = ["/api/v1/appointments*", "/api/v1/slots*"]
 
   depends_on = [aws_ecs_cluster.main, module.rds]
 }
@@ -147,6 +155,7 @@ module "ecs_patient_portal" {
   ecs_security_group_id = module.networking.ecs_security_group_id
 
   ecr_repository_url = var.patient_portal_ecr_url
+  image_tag          = var.patient_portal_image_tag
   task_cpu           = var.ecs_task_cpu
   task_memory        = var.ecs_task_memory
   desired_count      = var.ecs_service_desired_count
@@ -155,57 +164,12 @@ module "ecs_patient_portal" {
   container_environment = {
     NODE_ENV = "production"
   }
-  health_check_path = "/"
+  health_check_path           = "/"
+  alb_listener_arn            = module.networking.alb_listener_arn
+  listener_rule_priority      = 100
+  listener_rule_path_patterns = ["/*"]
 
   depends_on = [aws_ecs_cluster.main]
-}
-
-resource "aws_lb_listener_rule" "appointment_api" {
-  listener_arn = module.networking.alb_listener_arn
-  priority     = 10
-
-  action {
-    type             = "forward"
-    target_group_arn = module.ecs_appointment_service.target_group_arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/api/v1/appointments*", "/api/v1/slots*"]
-    }
-  }
-}
-
-resource "aws_lb_listener_rule" "patient_api" {
-  listener_arn = module.networking.alb_listener_arn
-  priority     = 20
-
-  action {
-    type             = "forward"
-    target_group_arn = module.ecs_patient_service.target_group_arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/api/v1/patients*", "/api/v1/doctors*", "/api/v1/health*"]
-    }
-  }
-}
-
-resource "aws_lb_listener_rule" "patient_portal" {
-  listener_arn = module.networking.alb_listener_arn
-  priority     = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = module.ecs_patient_portal.target_group_arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/*"]
-    }
-  }
 }
 
 # ECS Cluster
