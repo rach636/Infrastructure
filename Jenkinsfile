@@ -49,18 +49,18 @@ pipeline {
     }
 }
 
-        stage('Terraform Plan') {
+         stage('Terraform Plan Destroy') {
             steps {
                 dir('terraform/environments/prod') {
-                    sh 'terraform plan -out=tfplan'
+                    sh 'terraform plan -destroy -out=tfdestroyplan'
                 }
             }
         }
 
-        stage('Terraform Apply') {
+        stage('Terraform Destroy') {
             steps {
                 dir('terraform/environments/prod') {
-                    sh 'terraform apply -auto-approve tfplan'
+                    sh 'terraform apply -auto-approve tfdestroyplan'
                 }
             }
         }
